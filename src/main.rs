@@ -21,11 +21,12 @@ pub extern "C" fn _start() -> ! {
     //     *(0xdeadbeef as *mut u8) = 42;
     // }
 
-    fn stack_overflow() {
-        stack_overflow(); // infinite recursion
-    }
+    // This is for "double fault" demonstration
+    // fn stack_overflow() {
+    //     stack_overflow(); // infinite recursion
+    // }
 
-    stack_overflow();
+    // stack_overflow();
 
     #[cfg(test)]
     test_main();
@@ -34,6 +35,10 @@ pub extern "C" fn _start() -> ! {
 
     loop {
         // panic!("Whoops!");
+        // use blog_os::print;
+        // for _ in 0..10000 {}
+        // print!("-");
+        blog_os::hlt_loop();
     }
 }
 
@@ -46,7 +51,7 @@ fn xx() {
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     println!("{}", _info);
-    loop {}
+    blog_os::hlt_loop();
 }
 
 #[cfg(test)]
