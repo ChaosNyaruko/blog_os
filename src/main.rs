@@ -13,6 +13,23 @@ pub extern "C" fn _start() -> ! {
 
     blog_os::init();
 
+    use x86_64::registers::control::Cr3;
+    let (level_4_page_table, _) = Cr3::read();
+    println!(
+        "Level 4 page table at: {:?}",
+        level_4_page_table.start_address()
+    );
+
+    // let ptr = 0xdeadbeef as *mut u8;
+    // unsafe { *ptr = 42 }
+    // TODO: what is the content?
+    let ptr = 0x1000 as *mut u64;
+    let x = unsafe { *ptr };
+    println!("read worked: 0x{:X}", x);
+    // write should be not ok
+    // unsafe { *ptr = 42 }
+    // println!("write worked");
+
     // insert an int3 to trigger breakpoint exception
     // x86_64::instructions::interrupts::int3();
     //
@@ -33,13 +50,7 @@ pub extern "C" fn _start() -> ! {
 
     println!("It did not crash");
 
-    loop {
-        // panic!("Whoops!");
-        // use blog_os::print;
-        // for _ in 0..10000 {}
-        // print!("-");
-        blog_os::hlt_loop();
-    }
+    blog_os::hlt_loop();
 }
 
 #[test_case]
