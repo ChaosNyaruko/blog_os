@@ -4,46 +4,48 @@
 #![test_runner(blog_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-use blog_os::println;
+use blog_os::{memory::active_level_4_table, println};
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
+use x86_64::{structures::paging::PageTable, VirtAddr};
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+entry_point!(kernel_main);
+
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     println!("Hello world{}", "!");
 
     blog_os::init();
 
-    use x86_64::registers::control::Cr3;
-    let (level_4_page_table, _) = Cr3::read();
-    println!(
-        "Level 4 page table at: {:?}",
-        level_4_page_table.start_address()
-    );
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
 
-    // let ptr = 0xdeadbeef as *mut u8;
-    // unsafe { *ptr = 42 }
-    // TODO: what is the content?
-    let ptr = 0x1000 as *mut u64;
-    let x = unsafe { *ptr };
-    println!("read worked: 0x{:X}", x);
-    // write should be not ok
-    // unsafe { *ptr = 42 }
-    // println!("write worked");
+    let addresses = [
+        // vga buffer identity-mapped -> io
+        0xb8000,
+        // some code page
+        0x201008,
+        // some stack page
+        0x0100_0020_1a10,
+        // real physical 0 start
+        boot_info.physical_memory_offset, //-> 0
+        // our 0x1000
+        0x1000,
+        // not mapped, e.g. 0 -> null pointer ---> huge page panic
+        0xdeadbeaf, // -> None
+        0,          // -> None
+    ];
 
-    // insert an int3 to trigger breakpoint exception
-    // x86_64::instructions::interrupts::int3();
-    //
-
-    // unsafe {
-    //     *(0xdeadbeef as *mut u8) = 42;
-    // }
-
-    // This is for "double fault" demonstration
-    // fn stack_overflow() {
-    //     stack_overflow(); // infinite recursion
-    // }
-
-    // stack_overflow();
+    let mapper = unsafe { memory::init(phys_mem_offset) };
+    use blog_os::memory;
+    use x86_64::{structures::paging::Translate, VirtAddr};
+    for &address in &addresses {
+        let virt = VirtAddr::new(address);
+        let phys = mapper.translate_addr(virt);
+        println!("{:?} -> {:?}", virt, phys);
+        unsafe {
+            let x = *(address as *mut u8);
+            println!("{:?} contains {:}", addresses, x);
+        };
+    }
 
     #[cfg(test)]
     test_main();
