@@ -79,14 +79,7 @@ impl BootInfoFrameAllocator {
         let addr_ranges = usable_regions.map(|r| r.range.start_addr()..r.range.end_addr());
 
         let frame_addresses = addr_ranges.flat_map(|r| r.step_by(4096));
-        frame_addresses.map(|addr| {
-            println!("addr:{:?}", addr);
-            panic!("stops here");
-            // [0x1 0x2 0x3 ......4KiB + 1 )
-            // 4KiB+1 +2 xxxxxxxxx8KiB + 1)
-            // ...
-            PhysFrame::containing_address(PhysAddr::new(addr))
-        })
+        frame_addresses.map(|addr| PhysFrame::containing_address(PhysAddr::new(addr)))
     }
 }
 
