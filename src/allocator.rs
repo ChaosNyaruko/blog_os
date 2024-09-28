@@ -1,9 +1,14 @@
+pub mod bump;
+
 use alloc::alloc::{GlobalAlloc, Layout};
+use bump::BumpAllocator;
+use bump::Locked;
 use core::ptr::null_mut;
 use linked_list_allocator::LockedHeap;
 
 #[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap::empty();
+// static ALLOCATOR: LockedHeap = LockedHeap::empty();
+static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
 // static ALLOCATOR: Dummy = Dummy;
 
 pub struct Dummy;
