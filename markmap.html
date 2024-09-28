@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Markmap</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+#mindmap {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/markmap-toolbar@0.17.0/dist/style.css">
+</head>
+<body>
+<svg id="mindmap"></svg>
+<script src="https://unpkg.com/d3@7.8.5/dist/d3.min.js"></script><script src="https://unpkg.com/markmap-view@0.17.0/dist/browser/index.js"></script><script src="https://unpkg.com/markmap-toolbar@0.17.0/dist/index.js"></script><script>((r) => {
+            setTimeout(r);
+          })(() => {
+  const { markmap, mm } = window;
+  const toolbar = new markmap.Toolbar();
+  toolbar.attach(mm);
+  const el = toolbar.render();
+  el.setAttribute("style", "position:absolute;bottom:20px;right:20px");
+  document.body.append(el);
+})</script><script>((getMarkmap, getOptions, root2, jsonOptions) => {
+              const markmap = getMarkmap();
+              window.mm = markmap.Markmap.create(
+                "svg#mindmap",
+                (getOptions || markmap.deriveOptions)(jsonOptions),
+                root2
+              );
+            })(() => window.markmap,null,{"content":"","children":[{"content":"Overview","children":[],"payload":{"lines":"0,1"}},{"content":"Heap Allocation","children":[{"content":"局部变量与全局变量","children":[],"payload":{"lines":"4,5"}},{"content":"动态内存","children":[{"content":"堆和栈","children":[],"payload":{"lines":"6,7"}},{"content":"堆内存管理与常见错误","children":[{"content":"内存泄漏：需要\"手动\"释放","children":[],"payload":{"lines":"8,9"}},{"content":"Use After Free (https://cwe.mitre.org/data/definitions/416.html?)","children":[],"payload":{"lines":"9,10"}},{"content":"Double Free","children":[],"payload":{"lines":"10,11"}}],"payload":{"lines":"7,11"}},{"content":"Rust的内存管理和Ownership机制","children":[],"payload":{"lines":"11,12"}},{"content":"为什么我们需要堆内存分配","children":[{"content":"性能问题","children":[],"payload":{"lines":"13,14"}},{"content":"面对具有真正生命周期和有不同大小的变量不友好","children":[],"payload":{"lines":"14,15"}}],"payload":{"lines":"12,15"}}],"payload":{"lines":"5,15"}},{"content":"实现","children":[{"content":"Rust的Allocator接口","children":[],"payload":{"lines":"16,17"}},{"content":"类比C++ std库，例如Vector，但更底层，需要一些额外的设置，因为我们没有操作系统提供的new/delete/malloc/free接口","children":[],"payload":{"lines":"17,18"}},{"content":"GlobalAlloc Trait","children":[],"payload":{"lines":"18,19"}},{"content":"初始化可用的动态内存/堆","children":[],"payload":{"lines":"19,20"}},{"content":"嵌入一个可用的Allocator","children":[],"payload":{"lines":"20,22"}}],"payload":{"lines":"15,22"}}],"payload":{"lines":"3,4"}},{"content":"Allocator Designs","children":[{"content":"基本原则","children":[{"content":"alloc: 返回一片\"未使用\"的内存","children":[],"payload":{"lines":"24,25"}},{"content":"dealloc: 释放一些被使用的内存，使其能被再次使用","children":[],"payload":{"lines":"25,26"}}],"payload":{"lines":"23,24"}},{"content":"其他可能需要考虑的因素","children":[{"content":"充分利用可用空间，减少\"碎片\"和\"浪费\"","children":[],"payload":{"lines":"27,28"}},{"content":"并发/多核的扩展能力","children":[],"payload":{"lines":"28,29"}},{"content":"性能","children":[],"payload":{"lines":"29,30"}},{"content":"好的分配器像jemalloc之类的实现都很复杂，但设计内核用的分配器时一般都不希望太复杂","children":[],"payload":{"lines":"30,32"}}],"payload":{"lines":"26,27"}},{"content":"Bump Allocator","children":[{"content":"\"线性\"、\"递进\"式分配","children":[],"payload":{"lines":"33,34"}},{"content":"很少直接使用 arena allocation","children":[],"payload":{"lines":"34,35"}},{"content":"优点：性能高","children":[],"payload":{"lines":"35,36"}},{"content":"缺点：在「所有」的分配都释放后，才能再次使用 -&gt; 有理论上足够的空间也使用不了 -&gt; external \"fragmentation\"","children":[],"payload":{"lines":"36,38"}}],"payload":{"lines":"32,33"}},{"content":"Linked List Allocator","children":[{"content":"用链表管理可用内存，不受\"连续性\"的限制","children":[],"payload":{"lines":"39,40"}},{"content":"优点：可以直接\"复用\"内存，所以更通用","children":[],"payload":{"lines":"40,41"}},{"content":"缺点：","children":[{"content":"没有及时\"合并\"可用内存，因\"碎片\"问题(external fragmentation)，导致分配失败（主要是实现上的缺陷，并不是链表本身的缺陷）","children":[],"payload":{"lines":"42,43"}},{"content":"性能不可控，多数情况下是变差很多（是链表这一选型根本导致的）","children":[],"payload":{"lines":"43,45"}}],"payload":{"lines":"41,45"}}],"payload":{"lines":"38,39"}},{"content":"Fixed-Size Block Allocator","children":[{"content":"在碎片和分配性能间做取舍，引入一些固定大小的内存\"基本单元\"，以及多个链表","children":[],"payload":{"lines":"46,47"}},{"content":"分配时找离目标最近的更大的内存单元块","children":[],"payload":{"lines":"47,48"}},{"content":"针对大片内存的fallback","children":[],"payload":{"lines":"48,49"}},{"content":"某种类型单元分配完后，新建一些（用fallback分配器或者拆分大单元为小单元）","children":[],"payload":{"lines":"49,50"}},{"content":"优点：","children":[{"content":"比单纯的链表分配快得多","children":[],"payload":{"lines":"51,52"}}],"payload":{"lines":"50,52"}},{"content":"缺点：","children":[{"content":"浪费一些内存(internal fragmentation)，可以通过定义更多级的内存单元来缓解（最坏1/2浪费，平均1/4浪费）","children":[],"payload":{"lines":"53,54"}}],"payload":{"lines":"52,54"}},{"content":"变种：Slab Allocator 和 Buddy Allocator","children":[],"payload":{"lines":"54,56"}}],"payload":{"lines":"45,46"}},{"content":"It’s also important to remember that each kernel implementation has a unique workload, so there is no “best” allocator design that fits all cases.","children":[],"payload":{"lines":"56,57"}}],"payload":{"lines":"22,23"}}]},null)</script>
+</body>
+</html>
