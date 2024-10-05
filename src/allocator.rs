@@ -1,14 +1,17 @@
 pub mod bump;
+pub mod linked_list;
 
 use alloc::alloc::{GlobalAlloc, Layout};
 use bump::BumpAllocator;
 use bump::Locked;
 use core::ptr::null_mut;
+use linked_list::LinkedListAllocator;
 use linked_list_allocator::LockedHeap;
 
 #[global_allocator]
 // static ALLOCATOR: LockedHeap = LockedHeap::empty();
-static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+// static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
 // static ALLOCATOR: Dummy = Dummy;
 
 pub struct Dummy;
@@ -58,4 +61,32 @@ pub fn init_heap(
     }
 
     Ok(())
+}
+
+fn _align_up(addr: usize, align: usize) -> usize {
+    let remainder = addr % align;
+    if remainder == 0 {
+        // addr = 4
+        // aligh = 4
+        // addr 4->4
+        addr
+    } else {
+        // addr = 5
+        // aligh = 4
+        // 5 % 4 = 1
+        // addr 5->8  5 - 1 + 4
+        addr - remainder + align
+    }
+}
+
+/// A more effifient way of aligning up, but requires `align` is a power of two
+fn align_up(addr: usize, align: usize) -> usize {
+    // align: 1 << i -> 000000010000000000
+    // align: 1 << i -> 111111110000000000
+    // -1
+    // 1000 -> 0111
+    // (addr + align - 1) & align
+    (addr + align - 1) & !(align - 1)
+    // addr            :101101100110101010
+    // addr            :101101110000000000
 }
