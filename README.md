@@ -56,3 +56,22 @@ Learn operating system by building, following [Philipp Oppermann's blog](https:/
 
 ## It’s also important to remember that each kernel implementation has a unique workload, so there is no “best” allocator design that fits all cases.
 
+# Async/Await 并发与协程
+## Single-core CPUs vs Multi-core CPUs
+## Preemptive vs Cooperative
+### Preemptive
+操作系统通过中断（例如定时器）获取CPU，进行任务的调度
+操作系统需要保存原进程的“上下文”，包括调用堆栈和CPU寄存器信息等
+为减小上下文切换开销，引入“线程”概念，本质上为“独立管理”的调用栈，这样在上下文切换时操作系统只需要保存并恢复寄存器的状态，而不用每次都重新保存整个堆栈
+好处：操作系统可以完全掌握每一个任务（线程）的运行时间，不需要依赖任务自己不“流氓”
+缺点：每个任务/线程需要自己的调用栈空间，所需的内存空间更大（Goroutine 轻量级线程）；另外保存/恢复全量CPU寄存器的开销也不容小视
+### Cooperative
+任务间通过“协作”，主动“让出”和“接管”CPU，而不是由操作系统强制剥离，狭义上的“协程”
+协程可以自己控制让出CPU的时间，比如需要IO的时候，一般是语言级/应用级的实现，"yield"之类的关键字，有显式的也有隐式的
+常常与“异步”操作结合使用
+好处：更小的切换成本，任务可以按需保存需要的状态信息，而不是全部的（典型的有状态机实现），这样可以使用一个调用栈，资源开销要小得多，这也是为什么普遍都说协程可以在相同内存容量下，创建比线程多得多的数量
+缺点：避免不了有意或无意的“流氓”任务，一个坏任务可能导致整体挂死，作为一个操作系统，假设所有任务都是正常任务不现实
+
+## Async/Await in Rust
+### trait Future
+
