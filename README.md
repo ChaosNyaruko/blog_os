@@ -74,4 +74,14 @@ Learn operating system by building, following [Philipp Oppermann's blog](https:/
 
 ## Async/Await in Rust
 ### trait Future
-
+提供 `poll` 接口，进行异步化操作
+#### naive: loop + 无限轮询
+#### future combinator
+粗略解读，本质是为一个Future增加另一个Future包装，内部Future自己执行自己的，外部Future在真正需要获取相关性质时，再poll，有点像lazy load（类似iterator的设计）
+好处：能实现真正的异步，并且可以利用一切编译器优化能力，可以具有出色的性能；缺点：写起来会比较复杂，特别是配合Rust的类型系统以及基于闭包的接口设计（一旦涉及到闭包+ownership的问题，和Rust编译器斗争起来会非常痛苦）
+### Async/Await Pattern
+- “用同步的方式写异步代码”，由编译器完成这层转换，例如状态机实现
+- 某种自动生成Future的语法糖
+- Pinning 略
+- Executors and Wakers ，类比CPU核心/线程/GMP模型等，这也是我们要实现的部分
+## 实现我们自己的任务调度器
