@@ -7,7 +7,8 @@
 extern crate alloc;
 use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
 use blog_os::memory;
-use blog_os::task::{simple_executor::SimpleExecutor, Task};
+use blog_os::task::keyboard;
+use blog_os::task::{executor::Executor, simple_executor::SimpleExecutor, Task};
 use blog_os::{allocator, memory::active_level_4_table, println};
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
@@ -33,8 +34,10 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     allocator::init_heap(&mut mapper, &mut frame_allocator);
 
-    let mut executor = SimpleExecutor::new();
+    // let mut executor = SimpleExecutor::new();
+    let mut executor = Executor::new();
     executor.spawn(Task::new(example_task())); // fork  or CreateNewProcess
+    executor.spawn(Task::new(keyboard::print_keypresses()));
     executor.run();
 
     println!("It did not crash");
