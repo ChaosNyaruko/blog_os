@@ -1,6 +1,8 @@
 # Overview
 Learn operating system by building, following [Philipp Oppermann's blog](https://os.phil-opp.com/)
 
+[系列视频](https://www.bilibili.com/video/BV1Ez42117Hq)
+
 # Heap Allocation
 - 局部变量与全局变量
 - 动态内存
